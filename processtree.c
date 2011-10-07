@@ -66,7 +66,6 @@ void ProcInfoArray_threadPID(ProcInfo* piArray[], int n) {
       if (ppidPos >= 0) {
          ppidInfo = piArray[ppidPos];
          ProcInfo_addChild(ppidInfo, pidInfo);
-         printf("dbg: linking %d as child of %d\n", pidInfo->pid, ppidInfo->pid);
       }
       ProcInfo_addParent(pidInfo, ppidInfo);
    }
@@ -78,7 +77,7 @@ void ProcInfo_printRecursive(ProcInfo* pi, int level)
    int indent;
    for (indent=0; indent < level; indent++)
       printf(" ");
-   printf("PID %d\n", pi->pid);
+   printf("%d -> %s\n", pi->pid, pi->command);
    ProcInfo* next = pi->child;
    while (next != NULL) {
       ProcInfo_printRecursive(next, level+1);
@@ -104,31 +103,75 @@ int ProcInfo_cmp(const void *a, const void *b) {
    return (*piA)->pid - (*piB)->pid;
 }
 
+#define MAX_PROCS 100
+#define MAX_INPUT_LINE 10000 
+#define MAX_TOKENS 20
+
+int findToken(char *tokens[], char *searchToken, int max_tokens) {
+   int i;
+   for (i=0; i < max_tokens; i++) {
+      if (strcmp(tokens[i], searchToken) == 0) return i;
+   }
+   return -1;
+}
+
+
+int getTokens(char* buf, char *tokens[], int max_tokens) {
+   char *buffer = buf;
+   char *nextToken;
+   int i=0;
+   for(;;) {
+      tokens[i] = strtok(buffer, " \t\n");
+      buffer = NULL;
+      if (tokens[i] == NULL)
+         break;
+      i++;
+      if (i >= max_tokens)
+         break;
+   }
+   return i; /* number of tokens found or max */
+}
+
 void quickBSTest() {
    int pos, i;
-   ProcInfo *pi[6];
+   ProcInfo *pi[MAX_PROCS];
+   char buf[MAX_INPUT_LINE];
+   char* tokens[MAX_TOKENS];
+   FILE *pipe;
+   int token_count;
+   int pidCol, ppidCol, cmdCol;
+   int processTableCount = 0;
+   pipe = popen("ps -ef", "r");
+ 
 
-   pi[0] = ProcInfo_new(2, 1, "ls -1");
-   pi[1] = ProcInfo_new(8, 1, "ls -1");
-   pi[2] = ProcInfo_new(12, 2, "ls -1");
-   pi[3] = ProcInfo_new(3, 1, "ls -1");
-   pi[4] = ProcInfo_new(10, 2, "ls -1");
-   pi[5] = ProcInfo_new(13, 8, "ls -1");
-
-   qsort(pi, 6, sizeof(ProcInfo *), ProcInfo_cmp);
-
-   for (i=0; i < 6; i++) {
-      printf("after sorting at pos %d = PID %d\n", i, pi[i]->pid);
+   if (fgets(buf, MAX_INPUT_LINE, pipe) != NULL) {
+      token_count = getTokens(buf, tokens, MAX_TOKENS);
+      /* printf("tokens found = %d\n", token_count); */
+      pidCol = findToken(tokens, "PID", token_count);
+      ppidCol = findToken(tokens, "PPID", token_count);
+      cmdCol = findToken(tokens, "CMD", token_count);
+      /* printf("PID column %d PPID column %d CMD column %d\n", pidCol, ppidCol, cmdCol); */
+   }  else 
+      return;
+   
+   while (fgets(buf, MAX_INPUT_LINE, pipe) != NULL) {
+      char *pid, *ppid, *cmd;
+      token_count = getTokens(buf, tokens, MAX_TOKENS);
+      pid = tokens[pidCol];
+      ppid = tokens[ppidCol];
+      cmd = tokens[cmdCol]; /* just the command name */
+      if (pid == NULL || ppid == NULL || cmd == NULL)
+         continue;
+      /* printf("pid = %s ppid = %s cmd = %s\n", pid, ppid, cmd); */
+      pi[processTableCount++] = ProcInfo_new(atoi(pid), atoi(ppid), cmd);
    }
-   pos = ProcInfoArray_find(pi, 6, 25);
-   printf("Found %d at position %d (should be -1)\n", 25, pos);
+   qsort(pi, processTableCount, sizeof(ProcInfo *), ProcInfo_cmp);
 
-   for (i=0; i < 6; i++) {
-      pos = ProcInfoArray_find(pi, 6, pi[i]->pid);
-      printf("Found %d at position %d (should be %d)\n", pi[i]->pid, pos, i);
+   for (i=0; i < processTableCount; i++) {
+      pos = ProcInfoArray_find(pi, processTableCount, pi[i]->pid);
    }
-   ProcInfoArray_threadPID(pi, 6);
-   ProcInfoArray_print(pi, 6);
+   ProcInfoArray_threadPID(pi, processTableCount);
+   ProcInfoArray_print(pi, processTableCount);
 }
 
 
