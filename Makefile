@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-ansi -pedantic -D_POSIX_C_SOURCE=3
+CFLAGS=-g -ansi -pedantic -D_POSIX_C_SOURCE
 
 processtree: processtree.o
 
