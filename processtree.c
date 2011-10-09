@@ -79,7 +79,7 @@ void ProcInfo_print_recursive(ProcInfo* pi, int level)
   ProcInfo* next;
   for (indent=0; indent < level; indent++)
     printf(" ");
-  printf("%d -> %s\n", pi->pid, pi->command);
+  printf("%d: %s\n", pi->pid, pi->command);
   next = pi->child;
   while (next != NULL) {
     ProcInfo_print_recursive(next, level+1);
@@ -121,11 +121,14 @@ int StringArray_find_token(char *tokens[], char *searchToken, int max_tokens) {
   return -1;
 }
 
-int StringArray_parse_tokens(char *tokens[], char* buf, int max_tokens) {
+int StringArray_parse_tokens(char *tokens[], char* buf, int max_tokens, int cmd_col) {
   char *buffer = buf;
   int i=0;
   for(;;) {
-    tokens[i] = strtok(buffer, " \t\n");
+    if (i < cmd_col)
+       tokens[i] = strtok(buffer, " \t\n");
+    else
+       tokens[i] = strtok(buffer, "\n");
     buffer = NULL;
     if (tokens[i] == NULL)
       break;
@@ -151,7 +154,7 @@ void pstree() {
    */
 
   if (fgets(buf, MAX_INPUT_LINE, pipe) != NULL) {
-    token_count = StringArray_parse_tokens(tokens, buf, MAX_TOKENS);
+    token_count = StringArray_parse_tokens(tokens, buf, MAX_TOKENS, MAX_TOKENS);
     pidCol = StringArray_find_token(tokens, "PID", token_count);
     ppidCol = StringArray_find_token(tokens, "PPID", token_count);
     cmdCol = StringArray_find_token(tokens, "CMD", token_count);
@@ -164,7 +167,7 @@ void pstree() {
 
   while (fgets(buf, MAX_INPUT_LINE, pipe) != NULL) {
     char *pid, *ppid, *cmd;
-    token_count = StringArray_parse_tokens(tokens, buf, MAX_TOKENS);
+    token_count = StringArray_parse_tokens(tokens, buf, MAX_TOKENS, cmdCol);
     pid = tokens[pidCol];
     ppid = tokens[ppidCol];
     cmd = tokens[cmdCol];
@@ -176,7 +179,10 @@ void pstree() {
   /*
    * Sort by the ProcInfo.pid field.
    */
-  qsort(pi, processTableCount, sizeof(ProcInfo *), ProcInfo_qsort_compare_pid);
+  heapsort(pi, processTableCount, sizeof(ProcInfo *), ProcInfo_qsort_compare_pid);
+  /*
+   qsort(pi, processTableCount, sizeof(ProcInfo *), ProcInfo_qsort_compare_pid);
+   */
 
   /*
    * Thread the ProcInfo* with parent, child, and sibling information.
