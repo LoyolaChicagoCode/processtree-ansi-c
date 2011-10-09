@@ -144,10 +144,8 @@ void pstree() {
   ProcInfo *pi[MAX_PROCS];
   char buf[MAX_INPUT_LINE];
   char* tokens[MAX_TOKENS];
-  int token_count, pidCol, ppidCol, cmdCol, processTableCount = 0;
-  FILE *pipe, *popen();
-
-  pipe = popen("ps -ef", "r");
+  int token_count, pidCol, ppidCol, cmdCol, commandCol, processTableCount = 0;
+  FILE *pipe = stdin;
 
   /* The first line of input must contain headers PID, PPID, and CMD.
    * If missing, we can't continue.
@@ -158,8 +156,31 @@ void pstree() {
     pidCol = StringArray_find_token(tokens, "PID", token_count);
     ppidCol = StringArray_find_token(tokens, "PPID", token_count);
     cmdCol = StringArray_find_token(tokens, "CMD", token_count);
+    commandCol = StringArray_find_token(tokens, "COMMAND", token_count);
   } else 
     return;
+
+  /* This is just some additional error checking. Must have CMD or COMMAND
+   * header.
+   */
+
+  if (cmdCol < 0 && commandCol < 0) {
+     fprintf(stderr, "Cannot find CMD or COMMAND header.\n");
+     exit(1);
+  }
+
+  if (cmdCol < 0)
+     cmdCol = commandCol; 
+     
+  if (pidCol < 0) {
+     fprintf(stderr, "Cannot find PID header.\n");
+     exit(1);
+  }
+
+  if (ppidCol < 0) {
+     fprintf(stderr, "Cannot find PPID header.\n");
+     exit(1);
+  }
 
   /*
    * Read all lines of input into a ProcInfo* array.
@@ -179,7 +200,7 @@ void pstree() {
   /*
    * Sort by the ProcInfo.pid field.
    */
-  heapsort(pi, processTableCount, sizeof(ProcInfo *), ProcInfo_qsort_compare_pid);
+  qsort(pi, processTableCount, sizeof(ProcInfo *), ProcInfo_qsort_compare_pid);
   /*
    qsort(pi, processTableCount, sizeof(ProcInfo *), ProcInfo_qsort_compare_pid);
    */

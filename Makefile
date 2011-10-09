@@ -8,3 +8,9 @@ processtree.o: processtree.c processtree.h
 clean:
 	-rm -f processtree.o processtree
 
+ps: processtree
+	ps -ef | ./processtree
+
+psfake: processtree
+	python fakeps.py 10000 | ./processtree
+
