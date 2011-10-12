@@ -9,8 +9,8 @@ clean:
 	-rm -f processtree.o processtree
 
 ps: processtree
-	ps -ef | ./processtree
+	ps -ef | time ./processtree
 
 psfake: processtree
-	python fakeps.py 10000 | ./processtree
+	python fakeps.py 10000 | time ./processtree
 

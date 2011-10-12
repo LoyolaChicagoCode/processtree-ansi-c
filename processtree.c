@@ -12,7 +12,7 @@ ProcInfo* ProcInfo_new(int pid, int ppid, char* command) {
   ProcInfo *instance = (ProcInfo*) malloc(sizeof(ProcInfo));
   instance->pid = pid;
   instance->ppid = ppid;
-  instance->command = malloc(strlen(command) * sizeof(char));
+  instance->command = malloc(strlen(command) * sizeof(char)+1);
   strcpy(instance->command, command);
   instance->parent = instance->child = instance->sibling = NULL;
   return instance;
