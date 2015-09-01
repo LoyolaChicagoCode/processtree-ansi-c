@@ -1,3 +1,8 @@
+
+/*******************************************************
+/* Modificacion realizada por JLGAHETE
+/*******************************************************
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
