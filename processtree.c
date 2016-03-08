@@ -141,8 +141,14 @@ int StringArray_parse_tokens(char *tokens[], char* buf, int max_tokens, int cmd_
 }
 
 
+/* Make this global for proper initialization.
+   TODO: Replace with dynamic allocation.
+ */
+
+ProcInfo *pi[MAX_PROCS];
+
+
 void pstree() {
-  ProcInfo *pi[MAX_PROCS];
   char buf[MAX_INPUT_LINE];
   char* tokens[MAX_TOKENS];
   int token_count, pidCol, ppidCol, cmdCol, commandCol, processTableCount = 0;
