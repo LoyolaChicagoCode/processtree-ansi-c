@@ -1,3 +1,7 @@
+/*
+ * C++ version of fakeps.py in the making - not yet ready.
+ */
+
 #include <time.h>
 #include <stdlib.h>
 
