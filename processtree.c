@@ -20,7 +20,8 @@ ProcInfo* ProcInfo_new(int pid, int ppid, char* command) {
 
 
 void ProcInfo_add_parent(ProcInfo* process, ProcInfo* parent) {
-  process->parent = parent;
+  if (process != NULL)
+     process->parent = parent;
 }
 
 void ProcInfo_add_child(ProcInfo* process, ProcInfo* child) {
@@ -194,7 +195,12 @@ void pstree() {
     cmd = tokens[cmdCol];
     if (pid == NULL || ppid == NULL || cmd == NULL)
       continue;
-    pi[processTableCount++] = ProcInfo_new(atoi(pid), atoi(ppid), cmd);
+    if (processTableCount < MAX_PROCS)
+      pi[processTableCount++] = ProcInfo_new(atoi(pid), atoi(ppid), cmd);
+    else {
+      printf("fatal: Please recompile with MAX_PROCS > %d\n", MAX_PROCS);
+      exit(1);
+    }
   }
 
   /*

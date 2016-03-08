@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-g -ansi -pedantic -D_POSIX_C_SOURCE
+CFLAGS=-g -ansi -pedantic -D_POSIX_C_SOURCE -DMAX_PROCS=1000000
 
 processtree: processtree.o
 
