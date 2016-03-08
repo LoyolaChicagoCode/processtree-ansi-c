@@ -1,6 +1,7 @@
-/*
- * C++ version of fakeps.py in the making - not yet ready.
+/* C++ version of fakeps.py
+ * (gives a good idea of why you don't want your native collections interpreted)
  */
+
 
 #include <time.h>
 #include <stdlib.h>
@@ -14,10 +15,6 @@ using namespace std;
 bool mapHasKey(map<int, vector<int> > &m, int key) 
 {
    map<int, vector<int> >::iterator it = m.find(key);
-   if (it != m.end())
-      cout << key << "is in map" << endl;
-   else
-      cout << key << "is not in map" << endl;
    return it != m.end();
 }
 
@@ -25,34 +22,47 @@ int main(int argc, char* argv[]) {
 
    if (argc < 2) {
       // usage
+      printf("usage: fakeps n; where n is the number of processes you want");
       exit(1);
    }
+
    int n = atoi(argv[1]);
    vector<int> empty;
    map<int, vector<int> > ps;
 
+
+   // Set up the initial processes 0 and 1 to be Unix like.
    ps[0] = empty;
    ps[0].push_back(1);
-   ps[0].push_back(2);
-   ps[1].push_back(3);
+   ps[1] = empty;
 
-   for(map<int, vector<int> >::const_iterator it = ps.begin(); it != ps.end(); ++it)
-   {
-      cout << "Iterating map entry: " << it->first << endl;
-      for (int i=0; i < it->second.size(); i++) {
-         cout << it->second[i] << endl;
-      }
-      cout << endl;
-   }
-
-   cout << mapHasKey(ps, 0) << endl;
-   cout << mapHasKey(ps, 1) << endl;
-   cout << mapHasKey(ps, 2) << endl;
-   cout << mapHasKey(ps, 3) << endl;
+   // seed random number generator (not really needed, but ok)
 
    srand(time(NULL));
-   int r = rand();
-   cout << "Random number " << r << endl;
-   r = rand();
-   cout << "Random number " << r << endl;
+   int i = 2;
+   while (i <= n) {
+     int nextPid = i;
+     int randomKey;
+     do {
+       randomKey = 1 + rand() % ps.size();
+     } while (randomKey == nextPid);
+     if (!mapHasKey(ps, nextPid)) {
+       ps[nextPid] = empty;
+     }
+
+     ps[randomKey].push_back(nextPid);
+
+     //cout << "Creating PID " << randomKey << " with child " << nextPid << endl;
+     i++;
+   }
+
+   printf("%-10s %-10s %-10s\n", "PID", "PPID", "CMD");
+   for(map<int, vector<int> >::const_iterator it = ps.begin(); it != ps.end(); ++it)
+   {
+      int pid = it->first;
+      for (int i=0; i < it->second.size(); i++) {
+         int cpid = it->second[i];
+         printf("%-10d %-10d Fake Process %d\n", cpid, pid, cpid);
+      }
+   }
 }
