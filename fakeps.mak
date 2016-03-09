@@ -5,8 +5,6 @@ LDLIBS=-lstdc++
 
 fakeps: fakeps.o
 
-fakeps.o: fakeps.cc
-
 clean:
 	-rm -f fakeps.o fakeps
 
