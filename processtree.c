@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/time.h>
 
 #include "processtree.h"
 
@@ -147,17 +148,32 @@ int StringArray_parse_tokens(char *tokens[], char* buf, int max_tokens, int cmd_
 
 ProcInfo *pi[MAX_PROCS];
 
+/* TODO: Put in separate timing module. */
+double getElapsedTime(struct timeval *t1, struct timeval *t2) 
+{
+  double elapsedTime = (t2->tv_sec - t1->tv_sec) * 1000.0;
+  elapsedTime += (t2->tv_usec - t1->tv_usec) / 1000.0;
+  return elapsedTime;
+}
+
+void markTime(struct timeval *t) 
+{
+   gettimeofday(t, NULL);
+}
+
 
 void pstree() {
   char buf[MAX_INPUT_LINE];
   char* tokens[MAX_TOKENS];
   int token_count, pidCol, ppidCol, cmdCol, commandCol, processTableCount = 0;
   FILE *pipe = stdin;
+  struct timeval io1, io2, qs1, qs2, tree1, tree2, gen1, gen2;
 
   /* The first line of input must contain headers PID, PPID, and CMD.
    * If missing, we can't continue.
    */
 
+  markTime(&io1);
   if (fgets(buf, MAX_INPUT_LINE, pipe) != NULL) {
     token_count = StringArray_parse_tokens(tokens, buf, MAX_TOKENS, MAX_TOKENS);
     pidCol = StringArray_find_token(tokens, "PID", token_count);
@@ -209,10 +225,13 @@ void pstree() {
     }
   }
 
+  markTime(&io2);
   /*
    * Sort by the ProcInfo.pid field.
    */
+  markTime(&qs1);
   qsort(pi, processTableCount, sizeof(ProcInfo *), ProcInfo_qsort_compare_pid);
+  markTime(&qs2);
   /*
    qsort(pi, processTableCount, sizeof(ProcInfo *), ProcInfo_qsort_compare_pid);
    */
@@ -221,16 +240,31 @@ void pstree() {
    * Thread the ProcInfo* with parent, child, and sibling information.
    */
 
+  markTime(&tree1);
   ProcInfoArray_create_threaded_tree(pi, processTableCount);
+  markTime(&tree2);
 
   /*
    * Print the tree, recursively. Done!
    */
+  markTime(&gen1);
   ProcInfoArray_print(pi, processTableCount);
+  markTime(&gen2);
+
+  fprintf(stderr, "I/O time %f\n", getElapsedTime(&io1, &io2));
+  fprintf(stderr, "qsort time %f\n", getElapsedTime(&qs1, &qs2));
+  fprintf(stderr, "tree building time %f\n", getElapsedTime(&tree1, &tree2));
+  fprintf(stderr, "printing time %f\n", getElapsedTime(&gen1, &gen2));
+
+  
 }
 
 int main(int argc, char* argv[])
 {
+  struct timeval t1, t2;
+  markTime(&t1); 
   pstree();
+  markTime(&t2);
+  fprintf(stderr, "Total elapsed time %f\n", getElapsedTime(&t1, &t2));
   return 0;
 }
