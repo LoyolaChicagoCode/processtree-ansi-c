@@ -2,19 +2,18 @@
  * (gives a good idea of why you don't want your native collections interpreted)
  */
 
-
 #include <time.h>
 #include <stdlib.h>
 
-#include <map>
+#include <unordered_map>
 #include <vector>
 #include <iostream>
 
 using namespace std;
 
-bool mapHasKey(map<int, vector<int> > &m, int key) 
+bool mapHasKey(unordered_map<int, vector<int> > &m, int key) 
 {
-   map<int, vector<int> >::iterator it = m.find(key);
+   unordered_map<int, vector<int> >::iterator it = m.find(key);
    return it != m.end();
 }
 
@@ -28,7 +27,7 @@ int main(int argc, char* argv[]) {
 
    int n = atoi(argv[1]);
    vector<int> empty;
-   map<int, vector<int> > ps;
+   unordered_map<int, vector<int> > ps;
 
 
    // Set up the initial processes 0 and 1 to be Unix like.
@@ -57,7 +56,7 @@ int main(int argc, char* argv[]) {
    }
 
    printf("%-10s %-10s %-10s\n", "PID", "PPID", "CMD");
-   for(map<int, vector<int> >::const_iterator it = ps.begin(); it != ps.end(); ++it)
+   for(unordered_map<int, vector<int> >::const_iterator it = ps.begin(); it != ps.end(); ++it)
    {
       int pid = it->first;
       for (int i=0; i < it->second.size(); i++) {
