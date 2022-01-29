@@ -4,9 +4,9 @@
  */
 
 #include <time.h>
-#include <stdlib.h>
-
+#include <cstdlib>
 #include <vector>
+#include <cstdio>
 
 using namespace std;
 

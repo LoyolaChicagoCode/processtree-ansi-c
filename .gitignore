@@ -30,8 +30,5 @@
 # Emacs
 *~
 
-# Project-specific
-fakeps
-fakeps-vector
-fakeps-simple
-processtree
+# CMake Outputs
+build/
