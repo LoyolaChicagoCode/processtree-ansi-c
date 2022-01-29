@@ -5,16 +5,16 @@
 #define MAX_TOKENS 50
 
 #ifndef MAX_PROCS
-#define MAX_PROCS 32768 
+#define MAX_PROCS 32768
 #endif
 
 struct ProcInfo {
-   int pid;
-   int ppid;
-   char *command;
-   struct ProcInfo* parent;
-   struct ProcInfo* child;
-   struct ProcInfo* sibling;
+    int pid;
+    int ppid;
+    char *command;
+    struct ProcInfo* parent;
+    struct ProcInfo* child;
+    struct ProcInfo* sibling;
 };
 
 typedef struct ProcInfo ProcInfo;
